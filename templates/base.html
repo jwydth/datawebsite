@@ -3,100 +3,231 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{% block title %}winter{% endblock %}</title>
+    <title>{% block title %}Winter Shop{% endblock %}</title>
 
-    <!-- Fonts + Icons -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet" />
+    
+    <!-- Icons -->
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
     />
+    
+    <!-- Custom Styles -->
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='styles.css') }}"
     />
+    
+    <!-- Favicon -->
     <link
       rel="icon"
       type="image/svg+xml"
-      href="{{ url_for('static', filename='favicon.svg') }}"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E❄️%3C/text%3E%3C/svg%3E"
     />
+    
+    <!-- Meta tags -->
+    <meta name="description" content="{% block description %}Discover and review fashion items with Winter Shop{% endblock %}" />
+    <meta name="theme-color" content="#1a1a1a" />
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg sticky-top">
-      <div class="container-xl py-2">
-        <a class="navbar-brand brand" href="{{ url_for('index') }}"
-          >Winter Shop</a
-        >
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="container-xl">
+        <div class="d-flex align-items-center justify-content-between w-100" style="padding: 1rem 0;">
+          <!-- Brand -->
+          <a class="navbar-brand" href="{{ url_for('index') }}">
+            Winter Shop
+          </a>
 
-        <button
-          class="navbar-toggler bg-light"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#nav"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div id="nav" class="collapse navbar-collapse">
-          <form
-            class="d-flex ms-auto"
-            role="search"
-            action="{{ url_for('index') }}"
-          >
-            <input
-              class="form-control me-2"
-              style="min-width: 260px"
-              type="search"
-              placeholder="Search dresses, tops, jeans…"
-              name="q"
-              value="{{ q|default('') }}"
-            />
-            <button class="btn btn-primary">
-              <i class="bi bi-search"></i>
-            </button>
-          </form>
+          <!-- Navigation Menu -->
+          <div class="navbar-nav">
+            <!-- Search Form -->
+            <form class="d-flex gap-2" action="{{ url_for('index') }}" method="GET">
+              <input
+                class="form-control"
+                style="min-width: 300px;"
+                type="search"
+                placeholder="Search items..."
+                name="q"
+                value="{{ request.args.get('q', '') }}"
+                autocomplete="off"
+              />
+              <button class="btn btn-primary" type="submit">
+                <i class="bi bi-search"></i>
+              </button>
+            </form>
+            
+            <!-- Theme Toggle -->
+            <div class="d-flex gap-2">
+              <button id="theme-toggle" class="btn btn-outline-primary btn-sm" aria-label="Toggle theme">
+                <i id="theme-icon" class="bi bi-sun"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </nav>
 
-    <main class="container-xl my-4">
-      {% with messages = get_flashed_messages(with_categories=true) %} {% if
-      messages %}
-      <div class="mb-3">
-        {% for cat,msg in messages %}
-        <div class="alert alert-{{ cat }}">{{ msg }}</div>
-        {% endfor %}
-      </div>
-      {% endif %} {% endwith %} {% block content %}{% endblock %}
+    <!-- Main Content -->
+    <main class="container-xl" style="padding: 2rem 1rem;">
+      <!-- Flash Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="mb-4">
+            {% for category, message in messages %}
+              <div class="alert alert-{{ 'danger' if category == 'error' else category }}">
+                <div class="d-flex align-items-center gap-2">
+                  {% if category == 'success' %}
+                    <i class="bi bi-check-circle"></i>
+                  {% elif category == 'danger' or category == 'error' %}
+                    <i class="bi bi-exclamation-triangle"></i>
+                  {% elif category == 'info' %}
+                    <i class="bi bi-info-circle"></i>
+                  {% endif %}
+                  <span>{{ message }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <!-- Page Content -->
+      {% block content %}{% endblock %}
     </main>
 
+    <!-- Footer -->
     <footer class="footer">
       <div class="container-xl">
-        <div class="d-flex align-items-center justify-content-center gap-3">
-          <a href="#" class="text-decoration-none"
-            ><i class="bi bi-twitter-x"></i
-          ></a>
-          <a href="#" class="text-decoration-none"
-            ><i class="bi bi-github"></i
-          ></a>
-          <a href="#" class="text-decoration-none"
-            ><i class="bi bi-linkedin"></i
-          ></a>
-        </div>
-        <div class="mt-2 small">
-          © {{ 2025 }} Winter Shop · Built with Flask
+        <div class="d-flex align-items-center justify-content-between py-4">
+          <div class="d-flex align-items-center gap-6">
+            <span class="fw-semibold text-primary">Winter Shop</span>
+            <span class="small text-muted">© 2024 • Built with Flask</span>
+          </div>
+          <div class="d-flex align-items-center gap-4">
+            <a href="#" class="text-muted">
+              <i class="bi bi-twitter-x"></i>
+            </a>
+            <a href="#" class="text-muted">
+              <i class="bi bi-github"></i>
+            </a>
+            <a href="#" class="text-muted">
+              <i class="bi bi-linkedin"></i>
+            </a>
+          </div>
         </div>
       </div>
-    </footer>
+    </nav>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Consolidated JavaScript -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Auto-hide flash messages
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+          setTimeout(() => {
+            alert.style.transition = 'opacity 0.3s ease';
+            alert.style.opacity = '0';
+            setTimeout(() => alert.remove(), 300);
+          }, 4000);
+        });
+        
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const body = document.body;
+
+        // Get saved theme or default to light
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        body.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        // Theme toggle click handler
+        if (themeToggle) {
+          themeToggle.addEventListener('click', function() {
+            const currentTheme = body.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+            
+            // Force image redraw to prevent disappearing images
+            forceImageRedraw();
+          });
+        }
+
+        function updateThemeIcon(theme) {
+          if (!themeIcon) return;
+          themeIcon.className = theme === 'dark' ? 'bi bi-moon' : 'bi bi-sun';
+        }
+        
+        function forceImageRedraw() {
+          const images = document.querySelectorAll('.item-img, .item-detail-img');
+          images.forEach(img => {
+            if (img.src) {
+              const src = img.src;
+              img.src = '';
+              img.offsetHeight; // Trigger reflow
+              img.src = src;
+            }
+          });
+        }
+        
+        // Image error handling
+        const images = document.querySelectorAll('img');
+        images.forEach(img => {
+          img.addEventListener('error', function() {
+            if (this.dataset.fallback && this.src !== this.dataset.fallback) {
+              this.src = this.dataset.fallback;
+            } else {
+              this.style.background = 'var(--bg-secondary)';
+              this.style.color = 'var(--text-muted)';
+              this.style.display = 'flex';
+              this.style.alignItems = 'center';
+              this.style.justifyContent = 'center';
+              this.style.fontSize = 'var(--text-sm)';
+              this.textContent = 'Image not available';
+            }
+          });
+        });
+
+        // Handle dynamically loaded images
+        document.addEventListener('error', function(e) {
+          if (e.target.tagName === 'IMG') {
+            console.log('Image failed to load:', e.target.src);
+            e.target.style.background = 'var(--bg-secondary)';
+            e.target.style.display = 'flex';
+            e.target.style.alignItems = 'center';
+            e.target.style.justifyContent = 'center';
+            e.target.innerHTML = '<span style="color: var(--text-muted); font-size: var(--text-sm);">Image not available</span>';
+          }
+        }, true);
+
+        // Monitor theme changes for image visibility
+        const observer = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+              setTimeout(forceImageRedraw, 50);
+            }
+          });
+        });
+        
+        observer.observe(body, {
+          attributes: true,
+          attributeFilter: ['data-theme']
+        });
+      });
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
   </body>
 </html>

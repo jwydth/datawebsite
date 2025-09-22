@@ -1,58 +1,203 @@
-{% extends "base.html" %} {% block title %}{{ item.title }} · {{ BRAND }}{%
-endblock %} {% block content %}
+{% extends "base.html" %}
 
-<div class="row g-4">
-  <div class="col-lg-5">
-    <img
-      class="item-img"
-      src="https://picsum.photos/seed/item-{{ item.id }}/900/600"
-      alt="{{ item.title }}"
-      data-fallback="{{ url_for('static', filename='placeholder.jpg') }}"
-      onerror="this.onerror=null; this.src=this.dataset.fallback;"
-    />
+{% block title %}{{ item.title }} • {{ BRAND }}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav class="mb-6">
+  <div class="d-flex align-items-center gap-2 small text-muted">
+    <a href="{{ url_for('index') }}">Home</a>
+    <i class="bi bi-chevron-right"></i>
+    <a href="{{ url_for('index', q=item.department_name) }}">{{ item.department_name or 'Items' }}</a>
+    <i class="bi bi-chevron-right"></i>
+    <span class="text-primary">{{ item.title }}</span>
   </div>
-  <div class="col-lg-7">
-    <h3 class="mb-1">{{ item.title }}</h3>
-    <div class="small text-secondary mb-3">
-      {{ item.class_name }} · {{ item.department_name }}
+</nav>
+
+<!-- Item Details -->
+<div class="row g-6">
+  <!-- Item Image -->
+  <div class="col-lg-6">
+    <div class="position-sticky" style="top: 2rem;">
+      <div class="bg-white border rounded-lg overflow-hidden">
+        {% set category_img = get_category_image(item.class_name, item.id) %}
+        <img
+          class="item-detail-img w-100"
+          src="{{ url_for('static', filename=category_img) if category_img else 'https://picsum.photos/seed/detail-' + item.id|string + '/800/600' }}"
+          alt="{{ item.title }}"
+          data-fallback="https://picsum.photos/seed/detail-{{ item.id }}/800/600"
+          onerror="this.onerror=null; this.src=this.dataset.fallback;"
+        />
+      </div>
     </div>
-    <p class="lead">{{ item.description }}</p>
+  </div>
 
-    <a
-      class="btn btn-primary"
-      href="{{ url_for('new_review', item_id=item.id) }}"
-    >
-      Write a review
-    </a>
+  <!-- Item Information -->
+  <div class="col-lg-6">
+    <!-- Title and Category -->
+    <div class="mb-6">
+      <h1 class="mb-2">{{ item.title }}</h1>
+      <div class="d-flex align-items-center gap-3 text-muted small">
+        <span>{{ item.class_name or 'Fashion' }}</span>
+        <span>•</span>
+        <span>{{ item.department_name or 'Clothing' }}</span>
+      </div>
+    </div>
+
+    <!-- Description -->
+    {% if item.description %}
+    <div class="mb-6">
+      <p class="text-secondary">{{ item.description }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Statistics -->
+    {% set total_reviews = reviews|length %}
+    {% set positive_reviews = reviews|selectattr('recommend_label', 'equalto', 1)|list|length %}
+    {% set avg_rating = (reviews|sum(attribute='rating') / total_reviews) if total_reviews > 0 else 0 %}
+    {% set recommendation_rate = (100.0 * positive_reviews / total_reviews) if total_reviews > 0 else 0 %}
+
+    <div class="row g-3 mb-6">
+      <div class="col-6 col-sm-3">
+        <div class="text-center p-4 bg-light rounded">
+          <div class="h3 mb-1 text-primary">{{ avg_rating|round(1) }}</div>
+          <div class="small text-muted mb-2">Average Rating</div>
+          <div class="stars">
+            {% for i in range(1, 6) %}
+              <i class="bi {{ 'bi-star-fill' if i <= avg_rating else 'bi-star' }}"></i>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-sm-3">
+        <div class="text-center p-4 bg-light rounded">
+          <div class="h3 mb-1 text-success">{{ recommendation_rate|round(1) }}%</div>
+          <div class="small text-muted">Recommended</div>
+        </div>
+      </div>
+      <div class="col-6 col-sm-3">
+        <div class="text-center p-4 bg-light rounded">
+          <div class="h3 mb-1">{{ total_reviews }}</div>
+          <div class="small text-muted">Reviews</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="mb-6">
+      <a
+        class="btn btn-primary btn-lg w-100"
+        href="{{ url_for('new_review', item_id=item.id) }}"
+      >
+        Write a Review
+      </a>
+    </div>
+
+    <!-- Item Details -->
+    <div class="border-top pt-6">
+      <h6 class="mb-3 fw-semibold text-primary">Item Details</h6>
+      <div class="row">
+        <div class="col-sm-4 small text-muted mb-2">Category:</div>
+        <div class="col-sm-8 small mb-2">{{ item.class_name or 'Not specified' }}</div>
+        
+        <div class="col-sm-4 small text-muted mb-2">Department:</div>
+        <div class="col-sm-8 small mb-2">{{ item.department_name or 'Not specified' }}</div>
+        
+        <div class="col-sm-4 small text-muted mb-2">Item ID:</div>
+        <div class="col-sm-8 small mb-2">#{{ item.source_clothing_id or item.id }}</div>
+        
+        {% if item.created_at %}
+        <div class="col-sm-4 small text-muted mb-2">Added:</div>
+        <div class="col-sm-8 small mb-2">{{ item.created_at.strftime('%B %d, %Y') }}</div>
+        {% endif %}
+      </div>
+    </div>
   </div>
 </div>
 
-<hr class="my-5" />
-
-<h5 class="mb-3">Reviews</h5>
-{% for r in reviews %}
-<div class="card mb-3 p-3">
-  <div class="d-flex justify-content-between align-items-center">
-    <div class="small"><strong>Rating:</strong> {{ r.rating }}/5</div>
-    <span
-      class="badge {{ 'bg-success' if r.recommend_label==1 else 'bg-secondary' }}"
-    >
-      {{ 'Recommended' if r.recommend_label==1 else 'Not recommended' }}
-    </span>
+<!-- Reviews Section -->
+<div class="border-top mt-12 pt-8">
+  <div class="d-flex align-items-center justify-content-between mb-6">
+    <h3 class="mb-0">
+      Customer Reviews
+      {% if total_reviews %}
+      <span class="badge badge-soft">{{ total_reviews }}</span>
+      {% endif %}
+    </h3>
   </div>
-  {% if r.title %}
-  <div class="mt-2"><strong>{{ r.title }}</strong></div>
+
+  <!-- Reviews List -->
+  {% if reviews %}
+    <div class="row g-4">
+      {% for review in reviews %}
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <!-- Review Header -->
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <div class="d-flex align-items-center gap-3">
+                <!-- Star Rating -->
+                <div class="stars">
+                  {% for i in range(1, 6) %}
+                  <i class="bi {{ 'bi-star-fill' if i <= review.rating else 'bi-star' }}"></i>
+                  {% endfor %}
+                </div>
+                <div class="small text-muted">
+                  {{ review.created_at.strftime('%B %d, %Y') if review.created_at else 'Recently' }}
+                </div>
+                {% if review.reviewer_age %}
+                <div class="small text-muted">Age {{ review.reviewer_age }}</div>
+                {% endif %}
+              </div>
+              
+              <!-- Recommendation Badge -->
+              <span class="badge {{ 'badge-success' if review.recommend_label == 1 else 'badge-secondary' }}">
+                {{ 'Recommended' if review.recommend_label == 1 else 'Not Recommended' }}
+              </span>
+            </div>
+
+            <!-- Review Title -->
+            {% if review.title %}
+            <h6 class="mb-2 fw-semibold">{{ review.title }}</h6>
+            {% endif %}
+
+            <!-- Review Body -->
+            <p class="text-secondary mb-3">{{ review.body }}</p>
+
+            <!-- Review Footer -->
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="small text-muted">
+                AI suggested: {{ 'Recommended' if review.model_suggested == 1 else 'Not Recommended' }}
+              </div>
+              
+              <div class="d-flex align-items-center gap-3">
+                {% if review.positive_feedback_count > 0 %}
+                <span class="small text-muted">
+                  <i class="bi bi-hand-thumbs-up"></i> {{ review.positive_feedback_count }}
+                </span>
+                {% endif %}
+                <a href="{{ url_for('review_detail', review_id=review.id) }}" class="btn btn-outline-primary btn-sm">
+                  View Details
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-12">
+      <div class="mb-4">
+        <i class="bi bi-chat-left-text" style="font-size: 3rem; color: var(--gray-300);"></i>
+      </div>
+      <h4 class="text-muted mb-3">No Reviews Yet</h4>
+      <p class="text-muted mb-4">Be the first to share your experience with this item.</p>
+      <a href="{{ url_for('new_review', item_id=item.id) }}" class="btn btn-primary">
+        Write the First Review
+      </a>
+    </div>
   {% endif %}
-  <div class="mt-1">{{ r.body }}</div>
-  <div class="small text-secondary mt-2">
-    Model suggested: {{ r.model_suggested }}
-  </div>
-  <a
-    class="btn btn-link btn-sm px-0"
-    href="{{ url_for('review_detail', review_id=r.id) }}"
-    >Permalink</a
-  >
 </div>
-{% else %}
-<div class="text-secondary">No reviews yet — be the first!</div>
-{% endfor %} {% endblock %}
+{% endblock %}

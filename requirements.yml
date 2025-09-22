@@ -1,0 +1,21 @@
+name: myenv
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - flask
+  - flask-sqlalchemy
+  - markupsafe
+  - pandas
+  - numpy
+  - scikit-learn
+  - lightgbm
+  - matplotlib
+  - seaborn
+  - scipy
+  - nltk
+  - gensim
+  - beautifulsoup4
+  - lxml
+  - joblib

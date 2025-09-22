@@ -1,187 +1,405 @@
-{% extends "base.html" %} {% block title %}New Review · winter{% endblock %} {%
-block content %}
-<div class="row g-4">
+{% extends "base.html" %}
+
+{% block title %}Write a Review • {{ BRAND }}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav class="mb-6">
+  <div class="d-flex align-items-center gap-2 small text-muted">
+    <a href="{{ url_for('index') }}">Home</a>
+    <i class="bi bi-chevron-right"></i>
+    <a href="{{ url_for('item_detail', item_id=item.id) }}">{{ item.title }}</a>
+    <i class="bi bi-chevron-right"></i>
+    <span class="text-primary">Write Review</span>
+  </div>
+</nav>
+
+<div class="row g-6">
+  <!-- Review Form -->
   <div class="col-lg-8">
-    <div class="card p-3 p-md-4">
-      <h4 class="mb-3">Write a review</h4>
-
-      <form method="post" id="review-form">
-        <div class="mb-3">
-          <label class="form-label"
-            >Title <span class="text-secondary">(optional)</span></label
-          >
-          <input class="form-control" name="title" />
+    <div class="card">
+      <div class="card-body p-6">
+        <!-- Form Header -->
+        <div class="mb-6">
+          <h2 class="h4 mb-2">Write a Review</h2>
+          <p class="text-muted">Share your experience to help other shoppers</p>
         </div>
 
-        <div class="mb-3">
-          <label class="form-label">Review description</label>
-          <textarea
-            class="form-control"
-            rows="6"
-            name="body"
-            required
-            placeholder="Share fit, fabric, style and quality…"
-          ></textarea>
-          <div class="input-hint mt-1">
-            The model reads this to suggest a recommendation.
+        <form method="post" id="review-form">
+          <!-- Rating -->
+          <div class="mb-4">
+            <label class="form-label fw-medium">Overall Rating</label>
+            <div class="rating-container mb-2">
+              {% for n in [5,4,3,2,1] %}
+              <input type="radio" name="rating" id="rating-{{ n }}" value="{{ n }}" {{ 'checked' if n == 5 else '' }}>
+              <label for="rating-{{ n }}" class="rating-star">
+                <i class="bi bi-star-fill"></i>
+              </label>
+              {% endfor %}
+            </div>
+            <div class="small text-muted">Click to rate (5 = excellent, 1 = poor)</div>
           </div>
-        </div>
 
-        <div class="mb-3">
-          <label class="form-label">Rating</label>
-          <select class="form-select" name="rating">
-            {% for n in [5,4,3,2,1] %}
-            <option value="{{ n }}">{{ n }}</option>
-            {% endfor %}
-          </select>
-        </div>
+          <!-- Review Title -->
+          <div class="mb-4">
+            <label for="review-title" class="form-label">
+              Review Title <span class="text-muted small">(optional)</span>
+            </label>
+            <input 
+              type="text" 
+              class="form-control" 
+              name="title" 
+              id="review-title"
+              placeholder="Summarize your experience..."
+              maxlength="100"
+            />
+          </div>
 
-        <!-- Suggestion block: starts disabled & shows a placeholder -->
-        <div class="mb-3">
-          <label class="form-label"
-            >Model’s suggestion (you can override)</label
-          >
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-            <select
-              class="form-select w-auto"
-              name="recommend_label"
-              id="recommend_label"
-              disabled
-            >
-              <option value="" selected>— waiting —</option>
-              <option value="1">1 (recommended)</option>
-              <option value="0">0 (not recommended)</option>
-            </select>
+          <!-- Review Body -->
+          <div class="mb-4">
+            <label for="review-body" class="form-label fw-medium">
+              Your Review <span class="text-danger">*</span>
+            </label>
+            <textarea
+              class="form-control"
+              rows="6"
+              name="body"
+              id="review-body"
+              required
+              placeholder="Share details about fit, quality, style, and overall experience..."
+              maxlength="2000"
+            ></textarea>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <div class="small text-muted">Be specific and honest to help others make informed decisions</div>
+              <div class="small text-muted">
+                <span id="char-count">0</span>/2000
+              </div>
+            </div>
+          </div>
 
-            <button
-              type="button"
-              id="btnSuggest"
-              class="btn btn-outline-primary btn-sm"
-              disabled
-            >
-              Get suggestion
+          <!-- AI Recommendation -->
+          <div class="mb-4">
+            <div class="p-4 bg-light rounded">
+              <div class="d-flex align-items-center gap-3 mb-3">
+                <i class="bi bi-cpu text-primary"></i>
+                <div>
+                  <div class="fw-medium">AI Recommendation</div>
+                  <div class="small text-muted">Our AI will suggest a recommendation based on your review</div>
+                </div>
+              </div>
+
+              <div class="row align-items-center">
+                <div class="col-sm-6">
+                  <select
+                    class="form-select"
+                    name="recommend_label"
+                    id="recommend_label"
+                    disabled
+                  >
+                    <option value="" selected>— Write your review first —</option>
+                    <option value="1">Recommend this item</option>
+                    <option value="0">Don't recommend this item</option>
+                  </select>
+                </div>
+                
+                <div class="col-sm-6 text-center mt-3 mt-sm-0">
+                  <button
+                    type="button"
+                    id="btnSuggest"
+                    class="btn btn-outline-primary"
+                    disabled
+                  >
+                    Get AI Suggestion
+                  </button>
+                  
+                  <div class="mt-2">
+                    <span id="suggestion_status" class="small text-muted">
+                      Write at least 20 characters to enable AI suggestion
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hidden field for AI suggestion -->
+          <input type="hidden" name="suggested" id="suggested" value="" />
+
+          <!-- Form Actions -->
+          <div class="d-flex gap-3">
+            <button type="submit" class="btn btn-primary btn-lg flex-grow-1" id="btnPublish" disabled>
+              Publish Review
             </button>
-
-            <span id="suggestion_chip" class="badge-soft"
-              >Type your review to enable suggestion…</span
+            <a
+              class="btn btn-outline-primary btn-lg"
+              href="{{ url_for('item_detail', item_id=item.id) }}"
             >
+              Cancel
+            </a>
           </div>
-          <div class="input-hint mt-1">
-            We’ll only predict after you’ve written enough.
+
+          <!-- Help Text -->
+          <div class="mt-3">
+            <div class="small text-muted">
+              Your review will be published immediately and help other shoppers make informed decisions.
+            </div>
           </div>
-        </div>
-
-        <!-- Records the model's suggestion once computed -->
-        <input type="hidden" name="suggested" id="suggested" value="" />
-
-        <div class="d-flex gap-2">
-          <button class="btn btn-primary" id="btnPublish" disabled>
-            <i class="bi bi-send"></i> Publish review
-          </button>
-          <a
-            class="btn btn-outline-primary"
-            href="{{ url_for('item_detail', item_id=item.id) }}"
-            >Cancel</a
-          >
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   </div>
 
+  <!-- Item Preview Sidebar -->
   <div class="col-lg-4">
-    <div class="hero h-100">
-      <div class="badge-soft mb-2">You’re reviewing</div>
-      <h5 class="mb-1">{{ item.title }}</h5>
-      <div class="small text-secondary">
-        {{ item.class_name }} · {{ item.department_name }}
+    <div class="position-sticky" style="top: 2rem;">
+      <!-- Item Being Reviewed -->
+      <div class="card">
+        <div class="card-body p-4">
+          <h6 class="mb-3 fw-medium">You're Reviewing</h6>
+          
+          <!-- Item Image -->
+          <div class="text-center mb-3">
+            {% set category_img = get_category_image(item.class_name, item.id) %}
+            <img 
+            src="{{ url_for('static', filename=category_img) if category_img else 'https://picsum.photos/seed/review-' + item.id|string + '/300/200' }}" 
+            alt="{{ item.title }}" 
+            class="rounded w-100"
+            style="max-height: 160px; object-fit: cover;"
+            data-fallback="https://picsum.photos/seed/review-{{ item.id }}/300/200"
+            onerror="this.onerror=null; this.src=this.dataset.fallback;"
+            />
+          </div>
+          
+          <!-- Item Info -->
+          <h6 class="fw-medium mb-2">{{ item.title }}</h6>
+          <div class="small text-muted mb-3">
+            {{ item.class_name or 'Fashion' }} • {{ item.department_name or 'Clothing' }}
+          </div>
+          
+          {% if item.description %}
+          <p class="small text-muted mb-3">
+            {{ (item.description)[:120] }}{% if item.description|length > 120 %}...{% endif %}
+          </p>
+          {% endif %}
+          
+          <a href="{{ url_for('item_detail', item_id=item.id) }}" class="btn btn-outline-primary btn-sm w-100">
+            <i class="bi bi-arrow-left"></i> Back to Item
+          </a>
+        </div>
       </div>
-      <div class="text-secondary mt-3">
-        {{ (item.description or '')[:220] }}{% if (item.description or
-        '')|length > 220 %}…{% endif %}
+
+      <!-- Review Tips -->
+      <div class="card mt-4">
+        <div class="card-body p-4">
+          <h6 class="mb-3 fw-medium">Writing Tips</h6>
+          
+          <div class="space-y-2">
+            <div class="d-flex gap-2 mb-2">
+              <i class="bi bi-check text-success mt-1"></i>
+              <div class="small">
+                <strong>Fit & Size:</strong> How does it compare to your usual size?
+              </div>
+            </div>
+            <div class="d-flex gap-2 mb-2">
+              <i class="bi bi-check text-success mt-1"></i>
+              <div class="small">
+                <strong>Quality:</strong> Comment on fabric, construction, and durability
+              </div>
+            </div>
+            <div class="d-flex gap-2 mb-2">
+              <i class="bi bi-check text-success mt-1"></i>
+              <div class="small">
+                <strong>Style:</strong> Is it as pictured? How versatile is it?
+              </div>
+            </div>
+            <div class="d-flex gap-2">
+              <i class="bi bi-check text-success mt-1"></i>
+              <div class="small">
+                <strong>Value:</strong> Is it worth the price?
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
+{% endblock %}
+
+{% block extra_scripts %}
 <script>
+document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById("review-form");
   const select = document.getElementById("recommend_label");
   const suggested = document.getElementById("suggested");
-  const chip = document.getElementById("suggestion_chip");
-  const btn = document.getElementById("btnSuggest");
+  const status = document.getElementById("suggestion_status");
+  const btnSuggest = document.getElementById("btnSuggest");
   const btnPublish = document.getElementById("btnPublish");
+  const titleInput = form.querySelector('input[name="title"]');
+  const bodyTextarea = form.querySelector('textarea[name="body"]');
+  const charCount = document.getElementById('char-count');
 
-  const titleEl = form.querySelector('input[name="title"]');
-  const bodyEl = form.querySelector('textarea[name="body"]');
+  const MIN_LENGTH = 10;
 
-  // Require a minimum amount of text before suggesting (you can raise this to 40+ later)
-  const MIN_LEN = 1;
+  // Character counter
+  bodyTextarea.addEventListener('input', function() {
+    const length = this.value.length;
+    charCount.textContent = length;
+    updateSuggestionState();
+  });
+
+  titleInput.addEventListener('input', updateSuggestionState);
+
+  // Rating system
+  const ratingInputs = document.querySelectorAll('input[name="rating"]');
+  updateRatingDisplay(5); // Default 5 stars
+
+  ratingInputs.forEach(input => {
+    input.addEventListener('change', function() {
+      updateRatingDisplay(parseInt(this.value));
+    });
+  });
+
+  function updateRatingDisplay(rating) {
+    const stars = document.querySelectorAll('.rating-star');
+    stars.forEach((star, index) => {
+      const starValue = 5 - index;
+      const icon = star.querySelector('i');
+      if (starValue <= rating) {
+        icon.className = 'bi bi-star-fill';
+        star.style.color = '#fbbf24';
+      } else {
+        icon.className = 'bi bi-star';
+        star.style.color = '#d1d5db';
+      }
+    });
+  }
 
   function canSuggest() {
-    const len = (titleEl.value + " " + bodyEl.value).trim().length;
-    return len >= MIN_LEN;
+    const combinedText = (titleInput.value + " " + bodyTextarea.value).trim();
+    return combinedText.length >= MIN_LENGTH;
   }
 
-  function resetSuggestionUI(msg) {
-    select.disabled = true;
-    select.value = "";
-    suggested.value = "";
-    btnPublish.disabled = true;
-    chip.textContent = msg || `Type at least ${MIN_LEN} characters to suggest`;
-  }
-
-  function updateState() {
+  function updateSuggestionState() {
     if (canSuggest()) {
-      btn.disabled = false;
-      chip.textContent = "Ready to suggest";
+      btnSuggest.disabled = false;
+      status.textContent = 'Ready for AI suggestion';
+      status.className = 'small text-primary';
     } else {
-      btn.disabled = true;
+      btnSuggest.disabled = true;
       resetSuggestionUI();
     }
   }
 
-  async function suggestNow() {
-    if (!canSuggest()) return;
-    btn.disabled = true;
-    chip.textContent = "Predicting…";
+  function resetSuggestionUI(message) {
+    select.disabled = true;
+    select.value = "";
+    suggested.value = "";
+    btnPublish.disabled = true;
+    
+    const defaultMsg = `Write at least ${MIN_LENGTH} characters to enable AI suggestion`;
+    status.textContent = message || defaultMsg;
+    status.className = 'small text-muted';
+  }
 
-    const fd = new FormData(form);
+  async function getSuggestion() {
+    if (!canSuggest()) return;
+
+    btnSuggest.disabled = true;
+    btnSuggest.textContent = 'Analyzing...';
+    status.textContent = 'AI is analyzing your review...';
+    status.className = 'small text-info';
+
+    const formData = new FormData(form);
+
     try {
-      const res = await fetch('{{ url_for("suggest_label") }}', {
-        method: "POST",
-        body: fd,
+      const response = await fetch('{{ url_for("suggest_label") }}', {
+        method: 'POST',
+        body: formData
       });
-      const txt = (await res.text()).trim(); // backend returns plain "0" or "1"
-      const v = parseInt(txt, 10);
-      if (v !== 0 && v !== 1) {
-        resetSuggestionUI("Prediction failed");
-        return;
+
+      const result = (await response.text()).trim();
+      const prediction = parseInt(result, 10);
+
+      if (prediction !== 0 && prediction !== 1) {
+        throw new Error('Invalid prediction result');
       }
 
       select.disabled = false;
-      select.value = String(v);
-      suggested.value = String(v);
-      chip.textContent =
-        v === 1
-          ? `Model suggests: Recommended`
-          : `Model suggests: Not recommended`;
+      select.value = String(prediction);
+      suggested.value = String(prediction);
 
-      btnPublish.disabled = false; // allow publishing after a real prediction
-    } catch (e) {
-      resetSuggestionUI("Suggestion unavailable");
+      const recommendText = prediction === 1 ? 'Recommend' : 'Don\'t Recommend';
+      status.textContent = `AI suggests: ${recommendText}`;
+      status.className = prediction === 1 ? 'small text-success' : 'small text-warning';
+
+      btnPublish.disabled = false;
+
+    } catch (error) {
+      console.error('Suggestion failed:', error);
+      resetSuggestionUI('Suggestion unavailable, please try again');
     } finally {
-      btn.disabled = false;
+      btnSuggest.disabled = false;
+      btnSuggest.textContent = 'Get AI Suggestion';
     }
   }
 
-  btn.addEventListener("click", suggestNow);
-  titleEl.addEventListener("input", updateState);
-  bodyEl.addEventListener("input", updateState);
+  btnSuggest.addEventListener('click', getSuggestion);
 
-  // Optional: auto-suggest when user leaves a field
-  // titleEl.addEventListener("blur", () => canSuggest() && suggestNow());
-  // bodyEl.addEventListener("blur",  () => canSuggest() && suggestNow());
+  // Form validation
+  form.addEventListener('submit', function(e) {
+    const body = bodyTextarea.value.trim();
+    
+    if (body.length < 10) {
+      e.preventDefault();
+      bodyTextarea.focus();
+      return;
+    }
 
-  updateState();
+    if (!suggested.value && select.value) {
+      suggested.value = select.value;
+    }
+
+    btnPublish.disabled = true;
+    btnPublish.textContent = 'Publishing...';
+  });
+
+  updateSuggestionState();
+});
 </script>
+
+<style>
+.rating-container {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+.rating-container input[type="radio"] {
+  display: none;
+}
+
+.rating-star {
+  font-size: 1.5rem;
+  color: #d1d5db;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0.25rem;
+}
+
+.rating-star:hover {
+  transform: scale(1.1);
+}
+
+.rating-container input[type="radio"]:checked ~ .rating-star,
+.rating-container .rating-star:hover ~ .rating-star {
+  color: #fbbf24 !important;
+}
+
+.space-y-2 > * + * {
+  margin-top: 0.5rem;
+}
+</style>
 {% endblock %}
