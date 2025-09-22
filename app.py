@@ -223,7 +223,7 @@ def get_category_image(class_name, item_id):
 # Config
 # -------------------------
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DB_PATH = os.path.join(BASE_DIR, "shop.db")
+DB_PATH = os.path.join(BASE_DIR, "db", "shop.db")
 DATA_CSV = os.path.join(BASE_DIR, "data", "assignment3_II.csv")
 MODEL_P = os.path.join(BASE_DIR, "models", "review_recommender.joblib")
 
