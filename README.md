@@ -27,6 +27,14 @@ Winter Shop is a Flask-based web application for fashion item search, recommenda
 
 ## Environment Setup
 
+The encoded files (models.tar.gz.part-**) need to be aggregated.
+
+```sh
+cat models.tar.gz.part-* | tar -xvzf –
+```
+
+If you want to deploy the website manually, do the following instruction to set up the Anaconda environment. If you want to deploy the website using Docker, go to the next section.
+
 ### 1. Create and Activate Conda Environment, Please make sure the python environment is 3.12 (for gensim and matplot integration)
 
 ```sh
@@ -46,6 +54,17 @@ conda env update -f environment.yml -n myenv
 
 ```sh
 python app.py
+```
+
+Visit [http://localhost:5000](http://localhost:5000) in your browser.
+
+---
+
+## Docker running
+
+```sh
+sudo docker build . -t datawebsite-img
+sudo docker run --name datawebsite-con -p 5000:5000 datawebsite-img
 ```
 
 Visit [http://localhost:5000](http://localhost:5000) in your browser.
