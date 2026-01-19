@@ -87,6 +87,8 @@ Visit [http://localhost:5000](http://localhost:5000) in your browser.
 - **Features:** TF-IDF weighted FastText vectors
 - **Training Data:** Processed review data from Milestone 1
 
+Find out more about the process of building the models in the jupyter notebooks provided in the repository.
+
 ---
 
 ## Notes
