@@ -27,7 +27,7 @@ Winter Shop is a Flask-based web application for fashion item search, recommenda
 
 ## Environment Setup
 
-Option A: Linux/MacOS
+### Option A: Linux/MacOS
 
 The encoded files (models.tar.gz.part-\*\*) need to be aggregated.
 
@@ -39,9 +39,9 @@ cat models.tar.gz.part-* | tar -xvzf –
 
 Run the following **in PowerShell** from the folder that contains the `models.tar.gz.part-*` files.
 
-#### 1 Merge the parts into `models.tar.gz` (binary-safe)
+#### Merge the parts into `models.tar.gz` (binary-safe)
 
-````powershell
+`````powershell
 @'
 from pathlib import Path
 import shutil
@@ -59,7 +59,7 @@ with open("models.tar.gz", "wb") as w:
 print("✅ Created models.tar.gz")
 '@ | python
 
-```powershell
+````powershell
 
 
 If you want to deploy the website manually, do the following instruction to set up the Anaconda environment. If you want to deploy the website using Docker, go to the next section.
@@ -69,7 +69,7 @@ If you want to deploy the website manually, do the following instruction to set 
 ```sh
 conda env create -n myenv python=3.12
 conda activate myenv
-````
+`````
 
 ### 2. Download Libraries requirements
 
