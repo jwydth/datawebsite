@@ -41,7 +41,7 @@ Run the following **in PowerShell** from the folder that contains the `models.ta
 
 #### Merge the parts into `models.tar.gz` (binary-safe)
 
-`````powershell
+```powershell
 @'
 from pathlib import Path
 import shutil
@@ -59,8 +59,7 @@ with open("models.tar.gz", "wb") as w:
 print("✅ Created models.tar.gz")
 '@ | python
 
-````powershell
-
+```
 
 If you want to deploy the website manually, do the following instruction to set up the Anaconda environment. If you want to deploy the website using Docker, go to the next section.
 
@@ -69,7 +68,7 @@ If you want to deploy the website manually, do the following instruction to set 
 ```sh
 conda env create -n myenv python=3.12
 conda activate myenv
-`````
+```
 
 ### 2. Download Libraries requirements
 
