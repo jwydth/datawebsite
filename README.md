@@ -35,26 +35,32 @@ The encoded files (models.tar.gz.part-\*\*) need to be aggregated.
 cat models.tar.gz.part-* | tar -xvzf –
 ```
 
-Option B — Windows PowerShell (no Linux needed)
+### Option B — Windows PowerShell (no Linux needed)
 
-Run this in PowerShell from the folder containing the models.tar.gz.part-\* files:
+Run the following **in PowerShell** from the folder that contains the `models.tar.gz.part-*` files.
 
+#### 1 Merge the parts into `models.tar.gz` (binary-safe)
+
+````powershell
 @'
 from pathlib import Path
 import shutil
 
-parts = sorted(Path(".").glob("models.tar.gz.part-_"))
+parts = sorted(Path(".").glob("models.tar.gz.part-*"))
 if not parts:
-raise SystemExit("No parts found: models.tar.gz.part-_")
+    raise SystemExit("No parts found: models.tar.gz.part-*")
 
 with open("models.tar.gz", "wb") as w:
-for p in parts:
-print("Adding", p.name)
-with open(p, "rb") as r:
-shutil.copyfileobj(r, w, 1024\*1024)
+    for p in parts:
+        print("Adding", p.name)
+        with open(p, "rb") as r:
+            shutil.copyfileobj(r, w, 1024*1024)
 
 print("✅ Created models.tar.gz")
 '@ | python
+
+```powershell
+
 
 If you want to deploy the website manually, do the following instruction to set up the Anaconda environment. If you want to deploy the website using Docker, go to the next section.
 
@@ -63,7 +69,7 @@ If you want to deploy the website manually, do the following instruction to set 
 ```sh
 conda env create -n myenv python=3.12
 conda activate myenv
-```
+````
 
 ### 2. Download Libraries requirements
 
